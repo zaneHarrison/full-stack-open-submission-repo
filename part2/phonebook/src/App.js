@@ -4,12 +4,16 @@ import ContactForm from './components/ContactForm'
 import Contacts from './components/Contacts'
 import axios from 'axios'
 import personsService from './services/persons';
+import SuccessNotification from './components/SuccessNotification'
+import ErrorNotification from './components/ErrorNotification'
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [filterText, setFilterText] = useState('');
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     personsService
@@ -39,6 +43,7 @@ const App = () => {
     }
     if (persons.filter(person => person.name === newName).length > 0) {
       let personToUpdate = persons.filter(person => person.name === newName)[0];
+      let updateMessage = null;
       if (window.confirm(`${newName} is already a contact. Would you like to replace their number?`)) {
         personsService
           .update(personToUpdate.id, personObject)
@@ -49,7 +54,14 @@ const App = () => {
               } else {return person;}
             }))
           })
-      }
+          .then(() => updateMessage = `${personToUpdate.name}'s contact has been updated.`)
+          .catch(error => {
+            setErrorMessage('This contact no longer exists.')
+            setPersons(persons.filter(person => person.id !== personToUpdate.id));
+            updateMessage = null;
+          })
+        setSuccessMessage(updateMessage);
+      } else {return;}
     } else {
       personsService
         .create(personObject)
@@ -58,6 +70,7 @@ const App = () => {
           setNewName("");
           setNewNumber("");    
         });
+      setSuccessMessage(`${personObject.name} has been added as a contact.`);
     }
   }
 
@@ -69,7 +82,11 @@ const App = () => {
         setPersons(persons.filter((person) => person.id != contact.id))
       });
     }
+    setSuccessMessage(`${contact.name} has been removed from contacts.`)
   }
+
+  setTimeout(() => setSuccessMessage(null), 3000);
+  setTimeout(() => setErrorMessage(null), 3000);
 
   return (
     <div style={{ marginLeft: '2rem'}}>
@@ -86,6 +103,8 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h2>Contacts</h2>
+      <SuccessNotification message={successMessage} />
+      <ErrorNotification message={errorMessage} />
       <Contacts 
         persons={persons}
         filterText={filterText}
