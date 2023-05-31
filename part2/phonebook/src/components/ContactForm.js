@@ -19,7 +19,7 @@ const ContactForm = ({submitAction, newName, handleNameChange, newNumber, handle
                 />
                 </div>
                 <div>
-                <button type="submit">add</button>
+                    <button type="submit">add</button>
                 </div>
             </form>
         </>
